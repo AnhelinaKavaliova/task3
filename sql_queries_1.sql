@@ -118,51 +118,44 @@ order by
 --Вывести категорию фильмов, у которой самое большое кол-во часов суммарной аренды в городах (customer.address_id в этом city), 
 --и которые начинаются на букву “a”. То же самое сделать для городов в которых есть символ “-”. Написать все в одном запросе.
 with RentHours as (
-    select
-        c.city as city_name,
-        ca.name as category,
-        sum((r.return_date - r.rental_date) * 24) as total_rental_hours
-    from
-        city c
-    join address a on
-        c.city_id = a.city_id
-    join customer cu on
-        a.address_id = cu.address_id
-    join rental r on
-        cu.customer_id = r.customer_id
-    join inventory i on
-        r.inventory_id = i.inventory_id
-    join film_category fc on
-        i.film_id = fc.film_id
-    join category ca on
-        ca.category_id = fc.category_id
-    where
-        r.return_date is not null
-    group by
-        c.city,
-        ca.name
-),
-MaxHoursA as (
-    select
-        city_name,
-        category,
-        max(total_rental_hours) as max_hours
-    from
-        RentHours
-    where
-        category like 'A%' or city_name like '%-%'
-    group by
-        city_name,
-        category
-)
 select
-    city_name,
-    category,
-    max_hours
+	c.city as city_name,
+	ca.name as category,
+	sum((r.return_date - r.rental_date) * 24) as total_rental_hours
 from
-    MaxHoursA
+	city c
+join address a on
+	c.city_id = a.city_id
+join customer cu on
+	a.address_id = cu.address_id
+join rental r on
+	cu.customer_id = r.customer_id
+join inventory i on
+	r.inventory_id = i.inventory_id
+join film_category fc on
+	i.film_id = fc.film_id
+join category ca on
+	ca.category_id = fc.category_id
+where
+	r.return_date is not null
+group by
+	c.city,
+	ca.name
+)
+    select
+	city_name,
+	category,
+	max(total_rental_hours) as max_hours
+from
+	RentHours
+where
+	category like 'A%'
+	or city_name like '%-%'
+group by
+	city_name,
+	category
 order by
-    max_hours desc;
+	max_hours desc;
 
 
 
