@@ -55,6 +55,16 @@ select
 	f.title
 from
 	film f
+where not exists (
+	select * from inventory i 
+	where f.film_id = i.film_id
+) 
+
+	
+select
+	f.title
+from
+	film f
 left join inventory i on
 	f.film_id = i.film_id
 where
@@ -63,24 +73,31 @@ where
 --Вывести топ 3 актеров, которые больше всего появлялись в фильмах в категории “Children”
 --Если у нескольких актеров одинаковое кол-во фильмов, вывести всех
 select
-	a.first_name || ' ' || a.last_name as name,
-	count(fc.film_id) as films_count
+	name,
+	films_count
 from
-	actor a
-join film_actor fa on
-	a.actor_id = fa.actor_id
-join film_category fc on
-	fc.film_id = fa.film_id
-join category c on
-	c.category_id = fc.category_id
+	(
+	select
+		a.first_name || ' ' || a.last_name as name,
+		count(fc.film_id) as films_count,
+		dense_rank() over (order by count(fc.film_id) desc) as rank
+	from
+		actor a
+	join film_actor fa on
+		a.actor_id = fa.actor_id
+	join film_category fc on
+		fc.film_id = fa.film_id
+	join category c on
+		c.category_id = fc.category_id
+	where
+		c.name = 'Children'
+	group by
+		a.actor_id, name
+) as ranked_actors
 where
-	c.name = 'Children'
-group by
-	a.actor_id
+	rank <= 3
 order by
-	films_count desc
-limit 3;
-
+	films_count desc;
 --Вывести города с количеством активных и неактивных клиентов (активный — customer.active = 1)
 --Отсортировать по количеству неактивных клиентов по убыванию
 select
@@ -104,7 +121,7 @@ with RentHours as (
 select
 	c.city as city_name,
 	ca.name as category,
-		sum((r.return_date - r.rental_date)* 24) as total_rental_hours
+	sum((r.return_date - r.rental_date)* 24) as total_rental_hours
 from
 	city c
 join address a on
@@ -143,9 +160,7 @@ select
 	city_name,
 	category,
 	total_rental_hours,
-	row_number () over (partition by city_name
-order by
-	total_rental_hours desc) as rn
+	row_number () over (partition by city_name order by total_rental_hours desc) as rn
 from
 	RentHours
 where
