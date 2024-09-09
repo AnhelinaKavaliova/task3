@@ -158,7 +158,73 @@ order by
 	max_hours desc;
 
 
-
+--правильный вывод тут
+with RentHours as (
+select
+	c.city as city_name,
+	ca.name as category,
+	sum((r.return_date - r.rental_date)* 24) as total_rental_hours
+from
+	city c
+join address a on
+	c.city_id = a.city_id
+join customer cu on
+	a.address_id = cu.address_id
+join rental r on
+	cu.customer_id = r.customer_id
+join inventory i on
+	r.inventory_id = i.inventory_id
+join film_category fc on
+	i.film_id = fc.film_id
+join category ca on
+	ca.category_id = fc.category_id
+where
+	r.return_date is not null
+group by
+	city_name,
+	category
+),
+MaxHoursA as (
+select
+	city_name,
+	category,
+	max(total_rental_hours) as max_hours
+from
+	RentHours
+where
+	category like 'A%'
+group by
+	city_name,
+	category
+),
+MaxHoursCities as (
+select
+	city_name,
+	category,
+	total_rental_hours,
+	row_number () over (partition by city_name order by total_rental_hours desc) as rn
+from
+	RentHours
+where
+	city_name like '%-%'
+)
+select
+	city_name,
+	category,
+	max_hours
+from
+	MaxHoursA
+union all 
+select
+	city_name,
+	category,
+	total_rental_hours as max_hours
+from
+	MaxHoursCities
+where
+	rn = 1
+order by
+	max_hours desc;
 
 
 
