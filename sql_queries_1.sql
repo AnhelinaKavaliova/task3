@@ -150,20 +150,7 @@ MaxHoursA as (
     from
         RentHours
     where
-        category like 'A%'
-    group by
-        city_name,
-        category
-),
-MaxHoursCities as (
-    select
-        city_name,
-        category,
-        max(total_rental_hours) as max_hours
-    from
-        RentHours
-    where
-        city_name like '%-%'
+        category like 'A%' or city_name like '%-%'
     group by
         city_name,
         category
@@ -174,13 +161,6 @@ select
     max_hours
 from
     MaxHoursA
-union  
-select
-    city_name,
-    category,
-    max_hours
-from
-    MaxHoursCities
 order by
     max_hours desc;
 
