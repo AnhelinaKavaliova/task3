@@ -25,7 +25,7 @@ join inventory i on
 join rental r on
 	r.inventory_id = i.inventory_id
 group by
-	actor_name
+	a.actor_id, actor_name
 order by
 	rental_count desc
 limit 10;
