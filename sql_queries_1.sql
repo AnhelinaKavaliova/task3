@@ -142,7 +142,7 @@ group by
 	c.city,
 	ca.name
 )
-    select
+select
 	city_name,
 	category,
 	max(total_rental_hours) as max_hours
