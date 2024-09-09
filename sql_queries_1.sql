@@ -174,7 +174,7 @@ select
     max_hours
 from
     MaxHoursA
-union all 
+union  
 select
     city_name,
     category,
